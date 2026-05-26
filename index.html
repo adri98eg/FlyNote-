@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FlyNote+ </title>
+    <style>
+        :root {
+            --bg-gradient-start: #060a0e;
+            --bg-gradient-end: #10161d;
+            --card-bg: #060a0e;
+            --card-hover: #1b2938;
+            --blue-accent: #f78539;
+            --danger-accent: #ff3333;
+            --success-accent: #00ff2b;
+            --warning-accent: #ffaa00;
+            --text-main: #ffffff;
+            --text-muted: #7892a6;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --input-bg: #060a0e;
+            --overlay-bg: rgba(3, 5, 8, 0.9);
+        }
+
+        html, body {
+            overflow-x: hidden;
+            overflow-y: auto; /*        */
+            background-color: var(--bg-gradient-start);
+            scroll-behavior: smooth; /*     */
+            min-height: 100vh;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            color: var(--text-main);
+            padding: 15px;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-bottom: 60px; /*        */
+        }
+
+        .app-header {
+            text-align: center;
+            padding: 5px 0;
+            
+        }
+
+        .app-header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(90deg, #fff, var(--blue-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .app-header p {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Live Utilities Toolbar */
+        .search-bar-container {
+            width: 100%;
+        }
+
+        .search-bar-container input {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 0.85rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-bar-container input:focus {
+            border-color: var(--blue-accent);
+            background-color: var(--input-bg);
+        }
+
+        /* Note Input Workspace */
+        .note-input-box {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 14px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .note-input-box input, .note-input-box textarea,
+        .modal-body input, .modal-body textarea {
+            width: 100%;
+            background-color: var(--input-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 0.88rem;
+            outline: none;
+        }
+
+        .note-input-box textarea {
+            height: 85px;
+            resize: none;
+        }
+
+        /* Category Selector Matrix */
+        .meta-options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.15);
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .category-selector {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .category-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .color-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.15s;
+        }
+
+        .color-dot.selected {
+            transform: scale(1.25);
+            border-color: #fff;
+        }
+
+        .secure-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .secure-toggle input {
+            cursor: pointer;
+            width: 14px;
+            height: 14px;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .backup-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-outline:hover, .btn-outline:active {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-main {
+            background-color: var(--blue-accent);
+            color: #000;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        #fileInput { display: none; }
+
+        /* 2-Column Core Grid view */
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .note-card {
+            background: linear-gradient(145deg, var(--card-bg), #121c27);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 155px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .note-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        /* Category Border Accents */
+        .note-card.cat-blue { border-left: 3px solid var(--blue-accent); }
+        .note-card.cat-green { border-left: 3px solid var(--success-accent); }
+        .note-card.cat-red { border-left: 3px solid var(--danger-accent); }
+        .note-card.cat-orange { border-left: 3px solid var(--warning-accent); }
+
+        .note-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 4px;
+        }
+
+        .note-title {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 75%;
+        }
+
+        .card-util-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .action-icon-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.25);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 2px;
+            transition: color 0.15s;
+        }
+
+        .action-icon-btn:hover { color: #fff; }
+        .action-icon-btn.pinned-active { color: var(--warning-accent); }
+
+        .note-content {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-break: break-all;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+        }
+
+        .note-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding-top: 5px;
+            margin-top: auto;
+        }
+
+        .btn-delete {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.25);
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .btn-delete:hover { color: var(--danger-accent); }
+
+        /* Premium Modals Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--overlay-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            padding: 15px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: linear-gradient(145deg, var(--card-bg), #0f1720);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            width: 100%;
+            max-width: 400px;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.7);
+            transform: scale(0.92);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-header h3 { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 12px;}
+        .modal-body { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+        .modal-body textarea { height: 130px; resize: none; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+        .btn-danger {
+            background-color: var(--danger-accent);
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Toast Feedback Banner */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--blue-accent);
+            color: #000;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.78rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.25s ease;
+            z-index: 30000;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .empty-state { grid-column: 1 / -1; text-align: center; padding: 40px 10px; color: var(--text-muted); font-size: 0.78rem; border: 1px dashed rgba(255, 255, 255, 0.04); border-radius: 8px; }
+
+        /* Dynamic Floating Scroll Top Button */
+        .scroll-top-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background-color: rgba(6, 10, 14, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-main);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 25000;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .scroll-top-btn.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .scroll-top-btn:hover, .scroll-top-btn:active {
+            border-color: var(--blue-accent);
+            color: var(--blue-accent);
+            background-color: var(--card-bg);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="app-header">
+            <h1>FLYNoTe+ </h1>
+        </header>
+
+        <div class="search-bar-container">
+            <input type="text" id="searchBar" placeholder=" Search through stacks instantly..." autocomplete="off">
+        </div>
+
+        <section class="note-input-box">
+            <input type="text" id="noteTitle" placeholder="Note Title (Optional)..." autocomplete="off">
+            <textarea id="noteContent" placeholder="Write tactical instructions, logs or secure data..."></textarea>
+            
+            <div class="meta-options-row">
+                <div class="category-selector">
+                    <span class="category-label">Tag:</span>
+                    <div class="color-dot selected" style="background-color: var(--blue-accent)" data-cat="blue"></div>
+                    <div class="color-dot" style="background-color: var(--success-accent)" data-cat="green"></div>
+                    <div class="color-dot" style="background-color: var(--danger-accent)" data-cat="red"></div>
+                    <div class="color-dot" style="background-color: var(--warning-accent)" data-cat="orange"></div>
+                </div>
+                <label class="secure-toggle">
+                    <input type="checkbox" id="secureLockerCheck"> Encrypt Stack 
+                </label>
+            </div>
+
+            <div class="action-row">
+                <div class="backup-controls">
+                    <button class="btn-outline" onclick="exportBackup()"> Export</button>
+                    <button class="btn-outline" onclick="triggerImport()"> Import</button>
+                    <button class="btn-outline" id="fullscreenBtn" onclick="toggleFullscreen()"> Full</button>
+                    <input type="file" id="fileInput" accept=".json" onchange="importBackup(event)">
+                </div>
+                <button class="btn-main" onclick="saveNote()">Add Note</button>
+            </div>
+        </section>
+
+        <main class="notes-grid" id="notesGrid"></main>
+    </div>
+
+    <button class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()" title="Scroll To Top"></button>
+
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal-box" style="max-width: 310px;">
+            <div class="modal-header"><h3>Enter Stack Password</h3></div>
+            <div class="modal-body">
+                <input type="password" id="lockerPasswordInput" placeholder="Password required...">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-outline" onclick="closeModal('passwordModal')">Cancel</button>
+                <button class="btn-main" id="confirmPasswordBtn">Unlock</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="setLockerModal">
+        <div class="modal-box" style="max-width: 310px;">
+            <div class="modal-header"><h3>Set Crypt Password</h3></div>
+            <div class="modal-body">
+                <p style="font-size:0.7rem; color:var(--text-muted);">This password will lock this note completely.</p>
+                <input type="password" id="setLockerPassword" placeholder="Enter key structure...">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-outline" onclick="closeModal('setLockerModal')">Cancel</button>
+                <button class="btn-main" id="confirmSetLockerBtn">Secure Lock</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-box">
+            <div class="modal-header"><h3>Edit Strategic Stack</h3></div>
+            <div class="modal-body">
+                <input type="text" id="editModalTitle">
+                <textarea id="editModalContent"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-outline" onclick="closeModal('editModal')">Cancel</button>
+                <button class="btn-main" id="saveEditBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-box" style="max-width: 320px;">
+            <div class="modal-header"><h3>Drop Matrix Content</h3></div>
+            <div class="modal-body">
+                <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">Are you completely sure you want to drop this note stack permanently?</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-outline" onclick="closeModal('deleteModal')">Cancel</button>
+                <button class="btn-danger" id="confirmDeleteBtn">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toastBox">Completed</div>
+
+ <script>
+        let notes = [];
+        let selectedCategory = 'blue';
+        let activeTargetNoteId = null;
+        let searchQuery = '';
+
+        // Simple reversible XOR encryption layer for deep JSON exports protection
+        const CryptoCore = {
+            encrypt: (text, key) => {
+                if(!key) return text;
+                let result = "";
+                for (let i = 0; i < text.length; i++) {
+                    result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+                }
+                return btoa(result);
+            },
+            decrypt: (encoded, key) => {
+                if(!key) return encoded;
+                try {
+                    let text = atob(encoded);
+                    let result = "";
+                    for (let i = 0; i < text.length; i++) {
+                        result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+                    }
+                    return result;
+                } catch(e) { return null; }
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('flynotes_v4_data');
+            if (saved) { try { notes = JSON.parse(saved); } catch(e) { notes = []; } }
+            renderNotes();
+            
+            // Category Selector binding logic
+            document.querySelectorAll('.color-dot').forEach(dot => {
+                dot.addEventListener('click', () => {
+                    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+                    dot.classList.add('selected');
+                    selectedCategory = dot.dataset.cat;
+                });
+            });
+
+            // Live instant search engine hook
+            document.getElementById('searchBar').addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase().trim();
+                renderNotes();
+            });
+
+            // Scroll Listener to trigger top floating matrix controller
+            const topBtn = document.getElementById('scrollTopBtn');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 150) {
+                    topBtn.classList.add('visible');
+                } else {
+                    topBtn.classList.remove('visible');
+                }
+            });
+        });
+
+        // Prevention Shield
+        window.addEventListener('beforeunload', (e) => {
+            if (document.getElementById('noteTitle').value.trim() || document.getElementById('noteContent').value.trim()) {
+                e.preventDefault(); e.returnValue = 'Warning.';
+            }
+        });
+
+        // Fullscreen Toggle Core Function
+        function toggleFullscreen() {
+            const btn = document.getElementById('fullscreenBtn');
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => {
+                    btn.innerHTML = ' Exit';
+                    showToast('Fullscreen engine active');
+                }).catch(err => {
+                    showToast('Fullscreen require swipe up or gesture', true);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    btn.innerHTML = ' Full';
+                    showToast('Fullscreen engine terminated');
+                });
+            }
+        }
+
+        // Smooth Scroll Core Controller
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Dynamic Strategic Sorting & Rendering Engine
+        function renderNotes() {
+            const grid = document.getElementById('notesGrid');
+            grid.innerHTML = '';
+
+            // Filter by search terms
+            let filtered = notes.filter(n => {
+                let t = (n.title || '').toLowerCase();
+                let c = (n.isLocked ? 'secure hidden locked' : (n.content || '')).toLowerCase();
+                return t.includes(searchQuery) || c.includes(searchQuery);
+            });
+
+            // Priority sorting logic (Pinned elements always take priority index 0)
+            filtered.sort((a, b) => {
+                let pA = a.isPinned ? 1 : 0;
+                let pB = b.isPinned ? 1 : 0;
+                return pB - pA || b.id - a.id;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="empty-state">No corresponding note profiles verified.</div>`;
+                return;
+            }
+
+            filtered.forEach(note => {
+                const card = document.createElement('div');
+                card.className = `note-card cat-${note.category || 'blue'}`;
+                
+                card.addEventListener('click', () => { verifyAccess(note.id, () => openEditPage(note.id)); });
+
+                let displayContent = note.isLocked ? " STACK ENCRYPTED\n[Click to Unlock Content]" : note.content;
+
+                card.innerHTML = `
+                    <div>
+                        <div class="note-card-top">
+                            <div class="note-title">${escapeHTML(note.title || 'Untitled')}</div>
+                            <div class="card-util-actions">
+                                <button class="action-icon-btn ${note.isPinned ? 'pinned-active' : ''}" title="Pin Note" data-pin-id="${note.id}"></button>
+                                <button class="action-icon-btn" title="Copy Raw Text" data-copy-id="${note.id}"></button>
+                            </div>
+                        </div>
+                        <div class="note-content" style="${note.isLocked ? 'color:var(--blue-accent);font-weight:600;font-size:0.7rem;text-align:center;padding-top:10px;' : ''}">${escapeHTML(displayContent)}</div>
+                    </div>
+                    <div class="note-footer">
+                        <span>${note.date}</span>
+                        <button class="btn-delete" data-del-id="${note.id}"> Drop</button>
+                    </div>
+                `;
+
+                // Intercepting utility operations
+                card.querySelector('[data-pin-id]').addEventListener('click', (e) => {
+                    e.stopPropagation(); togglePin(note.id);
+                });
+                card.querySelector('[data-copy-id]').addEventListener('click', (e) => {
+                    e.stopPropagation(); verifyAccess(note.id, () => copyContentToClipboard(note.id));
+                });
+                card.querySelector('[data-del-id]').addEventListener('click', (e) => {
+                    e.stopPropagation(); triggerDeletePrompt(note.id);
+                });
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Action Core Processor
+        function saveNote() {
+            const titleIn = document.getElementById('noteTitle');
+            const contentIn = document.getElementById('noteContent');
+            const isSecure = document.getElementById('secureLockerCheck').checked;
+
+            const title = titleIn.value.trim();
+            const content = contentIn.value.trim();
+
+            if (!content) { showToast('Payload empty!', true); return; }
+
+            if (isSecure) {
+                document.getElementById('setLockerModal').classList.add('active');
+                document.getElementById('setLockerPassword').value = '';
+                document.getElementById('confirmSetLockerBtn').onclick = function() {
+                    const pass = document.getElementById('setLockerPassword').value.trim();
+                    if (!pass) { showToast('Encryption key required', true); return; }
+                    
+                    executeCreation(title, content, true, pass);
+                    closeModal('setLockerModal');
+                    titleIn.value = ''; contentIn.value = '';
+                    document.getElementById('secureLockerCheck').checked = false;
+                };
+            } else {
+                executeCreation(title, content, false, null);
+                titleIn.value = ''; contentIn.value = '';
+            }
+        }
+
+        function executeCreation(title, content, lockStatus, pass) {
+            let finalContent = lockStatus ? CryptoCore.encrypt(content, pass) : content;
+            const newNote = {
+                id: Date.now(),
+                title: title,
+                content: finalContent,
+                category: selectedCategory,
+                isLocked: lockStatus,
+                isPinned: false,
+                date: new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })
+            };
+            notes.push(newNote);
+            syncStorage(); renderNotes();
+            showToast('Note anchored to operational grid');
+        }
+
+        // Access Verification Guard Router
+        function verifyAccess(id, callback) {
+            const note = notes.find(n => n.id === id);
+            if (!note) return;
+            if (!note.isLocked) { callback(); return; }
+
+            document.getElementById('passwordModal').classList.add('active');
+            document.getElementById('lockerPasswordInput').value = '';
+            
+            document.getElementById('confirmPasswordBtn').onclick = function() {
+                const inputPass = document.getElementById('lockerPasswordInput').value.trim();
+                let decrypted = CryptoCore.decrypt(note.content, inputPass);
+                
+                if (decrypted !== null) {
+                    closeModal('passwordModal');
+                    // Injecting temporary volatile property for execution flow context
+                    note.decryptedCache = decrypted;
+                    note.sessionKey = inputPass;
+                    callback();
+                } else {
+                    showToast('Access Key Invalid!', true);
+                }
+            };
+        }
+
+        function openEditPage(id) {
+            const note = notes.find(n => n.id === id);
+            if (!note) return;
+
+            activeTargetNoteId = id;
+            document.getElementById('editModalTitle').value = note.title || '';
+            document.getElementById('editModalContent').value = note.isLocked ? note.decryptedCache : note.content;
+            document.getElementById('editModal').classList.add('active');
+
+            document.getElementById('saveEditBtn').onclick = function() {
+                const uTitle = document.getElementById('editModalTitle').value.trim();
+                const uContent = document.getElementById('editModalContent').value.trim();
+                if (!uContent) return;
+
+                note.title = uTitle;
+                note.content = note.isLocked ? CryptoCore.encrypt(uContent, note.sessionKey) : uContent;
+                
+                // Clear state caches
+                delete note.decryptedCache; delete note.sessionKey;
+                syncStorage(); renderNotes();
+                closeModal('editModal');
+                showToast('Stack updated perfectly');
+            };
+        }
+
+        // Feature Utilities
+        function togglePin(id) {
+            const note = notes.find(n => n.id === id);
+            if(note) { note.isPinned = !note.isPinned; syncStorage(); renderNotes(); }
+        }
+
+        function copyContentToClipboard(id) {
+            const note = notes.find(n => n.id === id);
+            if(!note) return;
+            let textToCopy = note.isLocked ? note.decryptedCache : note.content;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showToast('Payload copied to clipboard memory');
+                delete note.decryptedCache; delete note.sessionKey;
+            });
+        }
+
+        function triggerDeletePrompt(id) {
+            activeTargetNoteId = id;
+            document.getElementById('deleteModal').classList.add('active');
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                notes = notes.filter(n => n.id !== activeTargetNoteId);
+                syncStorage(); renderNotes();
+                closeModal('deleteModal');
+                showToast('Note stack permanently dropped');
+            };
+        }
+
+        function closeModal(mId) { document.getElementById(mId).classList.remove('active'); activeTargetNoteId = null; }
+
+        // Advanced Redundant Safe Backup Stream Engine
+        function exportBackup() {
+            if (notes.length === 0) { showToast('Matrix space empty.', true); return; }
+            try {
+                const cleanJson = JSON.stringify(notes, null, 2);
+                const blob = new Blob([cleanJson], { type: "application/json;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.href = url;
+                downloadAnchor.setAttribute("download", `FlyNote_Tactical_Backup_${new Date().toISOString().slice(0,10)}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                document.body.removeChild(downloadAnchor);
+                URL.revokeObjectURL(url);
+                showToast('Database backup compiled');
+            } catch (err) { showToast('Export streaming failed', true); }
+        }
+
+        function triggerImport() { document.getElementById('fileInput').click(); }
+
+        function importBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result.trim());
+                    if (Array.isArray(importedData)) {
+                        // Validate layout scheme structure
+                        const valid = importedData.filter(item => item && typeof item === 'object' && 'content' in item);
+                        if (valid.length > 0) {
+                            notes = valid; syncStorage(); renderNotes();
+                            showToast('Matrix network synchronized');
+                        } else { showToast('Data signature unverified.', true); }
+                    } else { showToast('Invalid structural file.', true); }
+                } catch (err) { showToast('Import parser breach.', true); }
+                event.target.value = '';
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function syncStorage() { localStorage.setItem('flynotes_v4_data', JSON.stringify(notes)); }
+        function showToast(m, err = false) {
+            const t = document.getElementById('toastBox'); t.innerText = m;
+            t.style.backgroundColor = err ? 'var(--danger-accent)' : 'var(--blue-accent)';
+            t.style.color = err ? '#fff' : '#000'; t.classList.add('show');
+            setTimeout(() => { t.classList.remove('show'); }, 2500);
+        }
+        function escapeHTML(str) {
+            if(!str) return '';
+            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+        }
+    </script>
+</body>
+</html>
